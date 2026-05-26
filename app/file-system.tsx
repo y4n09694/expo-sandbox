@@ -1,4 +1,4 @@
-import { Directory, File } from 'expo-file-system/next';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -10,14 +10,13 @@ export default function FileSystemScreen() {
   const runTest = async () => {
     try {
       const content = 'studigital-test-' + Date.now();
+      const dir = FileSystem.cacheDirectory + 'sandbox-test/';
+      const file = dir + 'hello.txt';
 
-      const dir = new Directory('cache://sandbox-test/');
-      dir.create();
-
-      const file = new File(dir, 'hello.txt');
-      file.write(content);
-      const read = file.text();
-      dir.delete();
+      await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
+      await FileSystem.writeAsStringAsync(file, content);
+      const read = await FileSystem.readAsStringAsync(file);
+      await FileSystem.deleteAsync(dir, { idempotent: true });
 
       if (read === content) {
         setResult({ ok: true, message: `Write → Read → Delete: OK\n"${content}"` });
@@ -34,7 +33,7 @@ export default function FileSystemScreen() {
       <Text style={styles.heading}>File System</Text>
       <Text style={styles.desc}>
         Creates a temp directory in cache, writes a string, reads it back, then deletes it.
-        Uses the SDK 54 class-based API (File / Directory).
+        Uses expo-file-system/legacy (stable async API).
       </Text>
       <Pressable style={styles.button} onPress={runTest}>
         <Text style={styles.buttonText}>Run Test</Text>
